@@ -73,8 +73,17 @@ def choose_center(distance_matrix):
     print(seqs_score)
     max_seq = max(seqs_score)
     return seqs_score.index(max_seq)
-        # print('koft')
-            # print(len(distance_matrix[i]))
+
+
+def multi_align(seqs, center_index):
+    for freq in range(len(seqs)-1):
+        for i in range(len(seqs)):
+            if i != center:
+                seq_new_1, seq_new_2, be_dard_nakhor = global_align(seqs[center], seqs[i], 3, -1, -2)
+                seqs[center] = seq_new_1
+                seqs[i] = seq_new_2
+    return seqs
+
 
 if __name__ == '__main__':
     n = input()  # how many sequences
@@ -85,4 +94,7 @@ if __name__ == '__main__':
 
     distance_matrix = create_distance_matrix(sequences)
     center = choose_center(distance_matrix)
-    print(center)
+    center_seq = sequences[center]
+    print(center_seq)
+    sequences_new = multi_align(sequences, center)
+    print(sequences_new)
