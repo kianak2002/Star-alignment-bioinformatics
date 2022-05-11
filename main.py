@@ -67,16 +67,16 @@ def choose_center(distance_matrix):
     for i in range(len(distance_matrix)):
         sum = 0
         for j in range(len(distance_matrix[i])):
-            print(distance_matrix[i][j])
+            # print(distance_matrix[i][j])
             sum += distance_matrix[i][j][2]
         seqs_score.append(sum)
-    print(seqs_score)
+    # print(seqs_score)
     max_seq = max(seqs_score)
     return seqs_score.index(max_seq)
 
 
 def multi_align(seqs, center_index):
-    for freq in range(len(seqs)-1):
+    for freq in range(len(seqs) - 1):
         for i in range(len(seqs)):
             if i != center:
                 seq_new_1, seq_new_2, be_dard_nakhor = global_align(seqs[center], seqs[i], 3, -1, -2)
@@ -85,16 +85,41 @@ def multi_align(seqs, center_index):
     return seqs
 
 
+def score_MSA(seqs):
+    sum_msa = 0
+    for i in range(len(seqs)):
+        for j in range(i+1, len(seqs)):
+            sum_msa += score_two_seq(seqs[i], seqs[j])
+    return sum_msa
+
+
+
+def score_two_seq(seq1, seq2):
+    score = 0
+    for i in range(len(seq1)):
+        if seq1[i] == seq2[i] != '-':
+            score += 3
+        elif seq1[i] == seq2[i] == '-':
+            score += 0
+        elif (seq1[i] == '-' and seq2[i] != '-') or (seq1[i] != '-' and seq2[i] == '-'):
+            score += -2
+        else:
+            score += -1
+    return score
+
+
 if __name__ == '__main__':
     n = input()  # how many sequences
     sequences = []  # an array for all sequences
     for i in range(int(n)):
         sequences.append(input())
-    print(sequences)
-
     distance_matrix = create_distance_matrix(sequences)
     center = choose_center(distance_matrix)
     center_seq = sequences[center]
-    print(center_seq)
     sequences_new = multi_align(sequences, center)
-    print(sequences_new)
+    score = score_MSA(sequences_new)
+    print(score)
+    for sequence in sequences_new:
+        print(sequence)
+    # print(score_two_seq('WRYIAMRE-QYES--', '--YI-MQEVQQE--R'))
+##### 13, 8, 16, 0, 7, 4
