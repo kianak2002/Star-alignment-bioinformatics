@@ -53,10 +53,13 @@ def create_distance_matrix(seqs):
     # print(distance_matrix)
     return distance_matrix
 
+
 '''
 it has the distance matrix
 chooses the one with the max score as the center
 '''
+
+
 def choose_center(distance_matrix):
     seqs_score = []
     for i in range(len(distance_matrix)):
@@ -69,12 +72,15 @@ def choose_center(distance_matrix):
     max_seq = max(seqs_score)
     return seqs_score.index(max_seq)
 
+
 '''
 align all sequences one by one using their alignment with the center sequence
 '''
+
+
 def multi_align(seqs, center_index):
     list_first_aligns = []
-    for k in range(len(seqs)-1):
+    for k in range(len(seqs)):
         if k != center_index:
             align1, align2, be_dard_nakhor = global_align(seqs[center_index], seqs[k], 3, -1, -2)
             list_first_aligns.append([align1, align2])  # list of all aligns with the center sequence
@@ -85,18 +91,17 @@ def multi_align(seqs, center_index):
     align.append(list_first_aligns[0][0])
     align.append(list_first_aligns[0][1])
     print(align)
-    for i in range(len(seqs)-2):
+    for i in range(len(seqs) - 2):
         print(center_seq, 'before')
-        center_seq, next_align = change_aligned_sequences(list_first_aligns[i+1], center_seq)
+        center_seq, next_align = change_aligned_sequences(list_first_aligns[i + 1], center_seq)
         print(center_seq, ' after')
-        for j in range(len(align)-1):
-            not_useful, changed_align = change_aligned_sequences([align[0], align[j+1]], center_seq)
-            align[j+1] = changed_align
+        for j in range(len(align) - 1):
+            not_useful, changed_align = change_aligned_sequences([align[0], align[j + 1]], center_seq)
+            align[j + 1] = changed_align
         align[0] = center_seq
         align.append(next_align)
         print(align, 'align', i)
     return align
-
 
     # for freq in range(len(seqs) - 1):
     #     for i in range(len(seqs)):
@@ -111,50 +116,48 @@ def multi_align(seqs, center_index):
 it gets the aligned sequence with center and the new center
 returns the new center and new sequence
 '''
+
+
 def change_aligned_sequences(seq_aligned, seq_center):
     seq_new = []
     center_new = []
     j = 0
     z = 0
     diff_center = abs(len(seq_aligned[0]) - len(seq_center))
-    count1 = 0
-    count2 = 0
-    
-    for i in range(200000):
+    count1 = len(seq_center)
+    count2 = len(seq_aligned[0])
 
-        if seq_center[z] == '-' != seq_aligned[0][j]:
+    for i in range(200000):
+        if j >= len(seq_aligned[0]):
+            center_new.append(seq_center[z])
+            seq_new.append(seq_center[z])
+            count1 -= 1
+        elif z >= len(seq_center):
+            center_new.append(seq_aligned[0][j])
+            seq_new.append(seq_aligned[1][j])
+            count2 -= 1
+        elif seq_center[z] == '-' != seq_aligned[0][j]:
             seq_new.append('-')
             center_new.append('-')
-            count1 += 1
+            count1 -= 1
             # z += 1
         elif seq_aligned[0][j] == '-' != seq_center[z]:
             center_new.append('-')
             seq_new.append(seq_aligned[1][j])
             z -= 1
             j += 1
-            count2 += 1
+            count2 -= 1
         else:
             seq_new.append(seq_aligned[1][j])
             center_new.append(seq_center[z])
             j += 1
             # z += 1
+            count1 -= 1
+            count2 -= 1
         z += 1
 
-        if len(center_new) == count1 + c :
+        if count1 == count2 == 0:
             break
-
-    x = len(seq_center) + diff_center - len(center_new)
-    for k in range(len(seq_center), len(center_new), -1):
-        if len(seq_center) != len(center_new):
-            center_new.append(seq_aligned[0][len(seq_aligned[0])-x])
-            x -= 1
-
-    y = len(seq_aligned[1]) + diff_center - len(seq_new)
-    for k in range(len(seq_aligned[1]), len(seq_new), -1):
-
-        if len(seq_aligned[1]) != len(seq_new):
-            seq_new.append(seq_aligned[1][len(seq_aligned[1])-y])
-            y -= 1
 
     center_new = ''.join([str(elem) for elem in center_new])
     seq_new = ''.join([str(elem) for elem in seq_new])
@@ -162,9 +165,12 @@ def change_aligned_sequences(seq_aligned, seq_center):
     print(center_new, seq_new, 'change_align')
     return center_new, seq_new
 
+
 '''
 calculate the score for each pair and add them together
 '''
+
+
 def score_MSA(seqs):
     sum_msa = 0
     for i in range(len(seqs)):
@@ -179,6 +185,8 @@ def score_MSA(seqs):
 '''
 the score for each two characters
 '''
+
+
 def score_block(first, second):
     score = 0
     if first == second == '-':
@@ -192,11 +200,12 @@ def score_block(first, second):
     return score
 
 
-
 '''
 gets two sequences
 calculate their score 
 '''
+
+
 def score_two_seq(seq1, seq2):
     score = 0
     for i in range(len(seq1)):
@@ -219,8 +228,9 @@ def sort_aligns(center_index, last_list):
         elif i > center:
             new_list.append(last_list[i])
         else:
-            new_list.append(last_list[i+1])
+            new_list.append(last_list[i + 1])
     return new_list
+
 
 if __name__ == '__main__':
     n = input()  # how many sequences
@@ -240,4 +250,3 @@ if __name__ == '__main__':
     # change_aligned_sequences(['-MNAHTA-FLL', 'NMFFVSANPW'], 'M-NAHT-AFL')
     # print(score_two_seq('WRYIAMRE-QYES--', '--YI-MQEVQQE--R'))
 ##### 13, 8, 16, 0, 7, 4
-
