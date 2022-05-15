@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def global_align(x, y, s_match, s_mismatch, s_gap):
     A = []
     for i in range(len(y) + 1):
@@ -84,23 +87,23 @@ def multi_align(seqs, center_index):
         if k != center_index:
             align1, align2, be_dard_nakhor = global_align(seqs[center_index], seqs[k], 3, -1, -2)
             list_first_aligns.append([align1, align2])  # list of all aligns with the center sequence
-    print(list_first_aligns)
+    # print(list_first_aligns)
 
     center_seq = list_first_aligns[0][0]
     align = []
     align.append(list_first_aligns[0][0])
     align.append(list_first_aligns[0][1])
-    print(align)
+    # print(align)
     for i in range(len(seqs) - 2):
-        print(center_seq, 'before')
+        # print(center_seq, 'before')
         center_seq, next_align = change_aligned_sequences(list_first_aligns[i + 1], center_seq)
-        print(center_seq, ' after')
+        # print(center_seq, ' after')
         for j in range(len(align) - 1):
             not_useful, changed_align = change_aligned_sequences([align[0], align[j + 1]], center_seq)
             align[j + 1] = changed_align
         align[0] = center_seq
         align.append(next_align)
-        print(align, 'align', i)
+        # print(align, 'align', i)
     return align
 
     # for freq in range(len(seqs) - 1):
@@ -140,7 +143,6 @@ def change_aligned_sequences(seq_aligned, seq_center):
             seq_new.append('-')
             center_new.append('-')
             count1 -= 1
-            # z += 1
         elif seq_aligned[0][j] == '-' != seq_center[z]:
             center_new.append('-')
             seq_new.append(seq_aligned[1][j])
@@ -151,7 +153,6 @@ def change_aligned_sequences(seq_aligned, seq_center):
             seq_new.append(seq_aligned[1][j])
             center_new.append(seq_center[z])
             j += 1
-            # z += 1
             count1 -= 1
             count2 -= 1
         z += 1
@@ -162,7 +163,7 @@ def change_aligned_sequences(seq_aligned, seq_center):
     center_new = ''.join([str(elem) for elem in center_new])
     seq_new = ''.join([str(elem) for elem in seq_new])
 
-    print(center_new, seq_new, 'change_align')
+    # print(center_new, seq_new, 'change_align')
     return center_new, seq_new
 
 
@@ -175,6 +176,7 @@ def score_MSA(seqs):
     sum_msa = 0
     for i in range(len(seqs)):
         for j in range(i + 1, len(seqs)):
+            # print(score_two_seq(seqs[i], seqs[j]), seqs[i], seqs[j])
             sum_msa += score_two_seq(seqs[i], seqs[j])
     return sum_msa
     # for i in range(len(seqs)):
@@ -228,9 +230,67 @@ def sort_aligns(center_index, last_list):
         elif i > center:
             new_list.append(last_list[i])
         else:
-            new_list.append(last_list[i + 1])
+            if i != len(last_list)-1:
+                new_list.append(last_list[i + 1])
     return new_list
 
+
+def block_multi_align(blocks):
+    distance_matrix_b = create_distance_matrix(blocks)
+    center_block = choose_center(distance_matrix_b)
+    block_new = multi_align(blocks, center_block)
+    score = score_MSA(block_new)
+    # print(score)
+    # print(center_seq)
+    block_new = sort_aligns(center_block, block_new)
+    return block_new, score
+
+
+def choose_block(seqs, score_msa):
+    last_score = score_msa
+    for i in range(len(seqs[0]), 1, -1):
+        for k in range(len(seqs[0])-i+1):
+            block = []
+            for j in range(len(seqs)):
+                block.append(seqs[j][k:k+i])
+            if check_block_improvement(block):
+                new_blocks = remove_gaps(block)
+                print(new_blocks, block, "okkkk")
+                aligned_block, score = block_multi_align(new_blocks)
+                print(score, score_MSA(block), "hehhhh")
+                if score > score_MSA(block):
+                    for n in range(len(seqs)):
+                        new_seq = seqs[n][:k-1] + aligned_block[n] + seqs[n][k+i+1:]
+                        # seqs[n][k:k+i] = aligned_block[n]
+                        seqs[n] = new_seq
+        last_score = score_MSA(seqs)
+    return seqs, last_score
+'''
+checks if the chosen block is an improving block 
+'''
+
+
+def check_block_improvement(block):
+    block_np = np.array(block)
+    block_T = block_np.transpose()
+    for i in range(len(block_T)):
+        if max(block_T[i]) == min(block_T[i]):  # to check if whole row is equal
+            return False
+
+    return True
+
+
+def remove_gaps(block):
+    new_block = []
+    for i in range(len(block)):
+        temp = []
+        for j in range(len(block[i])):
+            if block[i][j] != '-':
+                temp.append(block[i][j])
+        temp = ''.join([str(elem) for elem in temp])
+        new_block.append(temp)
+
+    return new_block
 
 if __name__ == '__main__':
     n = input()  # how many sequences
@@ -245,8 +305,16 @@ if __name__ == '__main__':
     print(score)
     # print(center_seq)
     sequences_new = sort_aligns(center, sequences_new)
+    # best = block_replace(sequences, score)
+    # sequences_new = block_multi_align(sequences)
     for sequence in sequences_new:
-        print(sequence, 'hi')
+        print(sequence)
+
+    seqs_new, score_new = choose_block(sequences_new, score)
+    print(score_new)
+    for sequence in seqs_new:
+        print(sequence)
+    # choose_block(sequences_new, [])
     # change_aligned_sequences(['-MNAHTA-FLL', 'NMFFVSANPW'], 'M-NAHT-AFL')
     # print(score_two_seq('WRYIAMRE-QYES--', '--YI-MQEVQQE--R'))
 ##### 13, 8, 16, 0, 7, 4
